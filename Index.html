@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Smart BK Attendance</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f3f4f6;
+    color: #222;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    margin-bottom: 20px;
+    border-radius: 15px;
+    box-shadow: 0 3px 10px rgba(0,0,0,.10);
+}
+
+h1 {
+    text-align: center;
+}
+
+h2 {
+    margin-top: 0;
+}
+
+input,
+select,
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+}
+
+button {
+    background: #333;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #555;
+}
+
+.menu {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.hidden {
+    display: none;
+}
+
+.error {
+    color: #d00000;
+}
+
+.success {
+    color: green;
+}
+
+.warning {
+    background: #fff3cd;
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 10px;
+}
+
+.student-card {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-top: 12px;
+    border-radius: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th,
+td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background: #eee;
+}
+
+.logout {
+    margin-top: 15px;
+}
+
+@media(max-width:600px) {
+
+    .menu {
+        grid-template-columns: 1fr;
+    }
+
+    table {
+        font-size: 13px;
+    }
+
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- =================================================
+     LOGIN
+================================================= -->
+
+<div id="loginPage" class="card">
+
+    <h1>SMART BK ATTENDANCE</h1>
+
+    <h2>Login</h2>
+
+    <input
+        type="text"
+        id="username"
+        placeholder="Username">
+
+    <input
+        type="password"
+        id="password"
+        placeholder="Password">
+
+    <button onclick="loginUser()">
+        LOGIN
+    </button>
+
+    <p id="loginMessage"></p>
+
+</div>
+
+
+<!-- =================================================
+     ADMIN
+================================================= -->
+
+<div id="adminPage" class="hidden">
+
+    <div class="card">
+
+        <h1>ADMIN</h1>
+
+        <p>
+            Input data kehadiran siswa
+        </p>
+
+        <h2>Input Kehadiran</h2>
+
+        <label>Pilih Siswa</label>
+
+        <select id="adminStudent">
+            <option value="">
+                Memuat siswa...
+            </option>
+        </select>
+
+        <label>Tanggal</label>
+
+        <input
+            type="date"
+            id="attendanceDate">
+
+        <label>Status Kehadiran</label>
+
+        <select id="attendanceStatus">
+
+            <option value="">
+                Pilih Status
+            </option>
+
+            <option value="Hadir">
+                Hadir
+            </option>
+
+            <option value="Sakit">
+                Sakit
+            </option>
+
+            <option value="Izin">
+                Izin
+            </option>
+
+            <option value="Alpa">
+                Alpa
+            </option>
+
+            <option value="Terlambat">
+                Terlambat
+            </option>
+
+            <option value="Bolos">
+                Bolos
+            </option>
+
+        </select>
+
+        <label>Keterangan</label>
+
+        <input
+            type="text"
+            id="attendanceDescription"
+            placeholder="Keterangan">
+
+        <button onclick="saveAttendance()">
+            SIMPAN KEHADIRAN
+        </button>
+
+        <p id="attendanceMessage"></p>
+
+        <button onclick="logoutUser()">
+            LOGOUT
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =================================================
+     DASHBOARD BK
+================================================= -->
+
+<div id="bkPage" class="hidden">
+
+    <div class="card">
+
+        <h1>DASHBOARD GURU BK</h1>
+
+        <p>
+            Selamat datang, Guru BK
+        </p>
+
+        <div class="menu">
+
+            <button onclick="showWarnings()">
+                DASHBOARD BK
+            </button>
+
+            <button onclick="showHistoryPage()">
+                RIWAYAT SISWA
+            </button>
+
+        </div>
+
+        <button onclick="logoutUser()">
+            LOGOUT
+        </button>
+
+    </div>
+
+
+    <!-- =================================================
+         SISWA MELEWATI BATAS
+    ================================================= -->
+
+    <div id="warningPage" class="card hidden">
+
+        <h2>Siswa yang Melewati Batas</h2>
+
+        <div id="warningResult">
+            Memuat data...
+        </div>
+
+        <button onclick="backToBK()">
+            KEMBALI
+        </button>
+
+    </div>
+
+
+    <!-- =================================================
+         RIWAYAT SISWA
+    ================================================= -->
+
+    <div id="historyPage" class="card hidden">
+
+        <h2>Riwayat Siswa</h2>
+
+        <label>Pilih Siswa</label>
+
+        <select id="historyStudent">
+            <option value="">
+                Memuat siswa...
+            </option>
+        </select>
+
+        <button onclick="loadHistory()">
+            LIHAT RIWAYAT
+        </button>
+
+        <div id="historyResult">
+        </div>
+
+        <button onclick="backToBK()">
+            KEMBALI
+        </button>
+
+    </div>
+
+</div>
+
+
+</div>
+
+
+<script>
+
+/* =================================================
+   GOOGLE APPS SCRIPT WEB APP
+================================================= */
+
+const API_URL =
+"https://script.google.com/macros/s/AKfycbwljkgBW6QMQL0m61Sba8PDzMOtVvwrP3h4FA5LJlPrwWU_4a-C4rvJakr-0sHdHu5F/exec";
+
+
+/* =================================================
+   LOGIN
+================================================= */
+
+async function loginUser() {
+
+    const username =
+        document.getElementById("username").value.trim();
+
+    const password =
+        document.getElementById("password").value.trim();
+
+    const message =
+        document.getElementById("loginMessage");
+
+
+    if (!username || !password) {
+
+        message.innerHTML =
+            "Username dan password wajib diisi.";
+
+        message.className = "error";
+
+        return;
+    }
+
+
+    message.innerHTML =
+        "Memeriksa login...";
+
+
+    try {
+
+        const url =
+            API_URL +
+            "?action=login" +
+            "&username=" +
+            encodeURIComponent(username) +
+            "&password=" +
+            encodeURIComponent(password);
+
+
+        const response =
+            await fetch(url);
+
+
+        const result =
+            await response.json();
+
+
+        if (!result.success) {
+
+            throw new Error(
+                result.message ||
+                "Login gagal."
+            );
+
+        }
+
+
+        /*
+         * ROLE ADMIN
+         */
+
+        if (result.role === "admin") {
+
+            document
+                .getElementById("loginPage")
+                .classList.add("hidden");
+
+            document
+                .getElementById("adminPage")
+                .classList.remove("hidden");
+
+            setToday();
+
+            loadStudentsForAdmin();
+
+            return;
+        }
+
+
+        /*
+         * ROLE GURU BK
+         */
+
+        if (result.role === "bk") {
+
+            document
+                .getElementById("loginPage")
+                .classList.add("hidden");
+
+            document
+                .getElementById("bkPage")
+                .classList.remove("hidden");
+
+            loadStudentsForHistory();
+
+            return;
+        }
+
+
+        throw new Error(
+            "Role pengguna tidak dikenal."
+        );
+
+
+    } catch(error) {
+
+        console.error(error);
+
+        message.innerHTML =
+            "Login gagal: " +
+            error.message;
+
+        message.className = "error";
+
+    }
+
+}
+
+
+/* =================================================
+   LOGOUT
+================================================= */
+
+function logoutUser() {
+
+    document
+        .getElementById("adminPage")
+        .classList.add("hidden");
+
+    document
+        .getElementById("bkPage")
+        .classList.add("hidden");
+
+    document
+        .getElementById("warningPage")
+        .classList.add("hidden");
+
+    document
+        .getElementById("historyPage")
+        .classList.add("hidden");
+
+    document
+        .getElementById("loginPage")
+        .classList.remove("hidden");
+
+
+    document.getElementById("username").value = "";
+
+    document.getElementById("password").value = "";
+
+    document.getElementById("loginMessage").innerHTML = "";
+
+}
+
+
+/* =================================================
+   TANGGAL HARI INI
+================================================= */
+
+function setToday() {
+
+    const today =
+        new Date();
+
+    const year =
+        today.getFullYear();
+
+    const month =
+        String(
+            today.getMonth() + 1
+        ).padStart(2, "0");
+
+    const day =
+        String(
+            today.getDate()
+        ).padStart(2, "0");
+
+
+    document
+        .getElementById("attendanceDate")
+        .value =
+        year + "-" +
+        month + "-" +
+        day;
+
+}
+
+
+/* =================================================
+   LOAD SISWA UNTUK ADMIN
+================================================= */
+
+async function loadStudentsForAdmin() {
+
+    const select =
+        document.getElementById(
+            "adminStudent"
+        );
+
+
+    select.innerHTML =
+        "<option>Memuat siswa...</option>";
+
+
+    try {
+
+        const response =
+            await fetch(
+                API_URL +
+                "?action=siswa"
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (!result.success) {
+
+            throw new Error(
+                result.message
+            );
+
+        }
+
+
+        select.innerHTML =
+            '<option value="">Pilih Siswa</option>';
+
+
+        result.data.forEach(function(student) {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                student.idSiswa;
+
+
+            option.textContent =
+                student.nama +
+                " - " +
+                student.kelas;
+
+
+            select.appendChild(option);
+
+        });
+
+
+    } catch(error) {
+
+        console.error(error);
+
+        select.innerHTML =
+            '<option value="">Gagal memuat siswa</option>';
+
+    }
+
+}
+
+
+/* =================================================
+   SIMPAN KEHADIRAN
+================================================= */
+
+async function saveAttendance() {
+
+    const idSiswa =
+        document
+            .getElementById("adminStudent")
+            .value;
+
+
+    const tanggal =
+        document
+            .getElementById("attendanceDate")
+            .value;
+
+
+    const status =
+        document
+            .getElementById("attendanceStatus")
+            .value;
+
+
+    const keterangan =
+        document
+            .getElementById(
+                "attendanceDescription"
+            )
+            .value;
+
+
+    const message =
+        document
+            .getElementById(
+                "attendanceMessage"
+            );
+
+
+    if (
+        !idSiswa ||
+        !tanggal ||
+        !status
+    ) {
+
+        message.innerHTML =
+            "Siswa, tanggal, dan status wajib diisi.";
+
+        message.className =
+            "error";
+
+        return;
+    }
+
+
+    message.innerHTML =
+        "Menyimpan data...";
+
+    message.className = "";
+
+
+    try {
+
+        const url =
+            API_URL +
+            "?action=simpanKehadiran" +
+            "&idSiswa=" +
+            encodeURIComponent(idSiswa) +
+            "&tanggal=" +
+            encodeURIComponent(tanggal) +
+            "&status=" +
+            encodeURIComponent(status) +
+            "&keterangan=" +
+            encodeURIComponent(keterangan);
+
+
+        const response =
+            await fetch(url);
+
+
+        const result =
+            await response.json();
+
+
+        if (!result.success) {
+
+            throw new Error(
+                result.message
+            );
+
+        }
+
+
+        message.innerHTML =
+            "✓ Kehadiran berhasil disimpan.";
+
+        message.className =
+            "success";
+
+
+        document
+            .getElementById(
+                "attendanceStatus"
+            )
+            .value = "";
+
+
+        document
+            .getElementById(
+                "attendanceDescription"
+            )
+            .value = "";
+
+
+    } catch(error) {
+
+        console.error(error);
+
+        message.innerHTML =
+            "Gagal menyimpan: " +
+            error.message;
+
+        message.className =
+            "error";
+
+    }
+
+}
+
+
+/* =================================================
+   DASHBOARD BK
+================================================= */
+
+async function showWarnings() {
+
+    document
+        .getElementById("warningPage")
+        .classList.remove("hidden");
+
+
+    document
+        .getElementById("historyPage")
+        .classList.add("hidden");
+
+
+    const result =
+        document
+            .getElementById(
+                "warningResult"
+            );
+
+
+    result.innerHTML =
+        "Memuat data peringatan...";
+
+
+    try {
+
+        const response =
+            await fetch(
+                API_URL +
+                "?action=peringatan"
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!data.success) {
+
+            throw new Error(
+                data.message
+            );
+
+        }
+
+
+        if (
+            !data.data ||
+            data.data.length === 0
+        ) {
+
+            result.innerHTML =
+                '<div class="success">' +
+                '✓ Belum ada siswa yang melewati batas.' +
+                '</div>';
+
+            return;
+
+        }
+
+
+        let html = "";
+
+
+        data.data.forEach(function(student) {
+
+            html += `
+
+                <div class="student-card warning">
+
+                    <strong>
+                        ${student.nama}
+                    </strong>
+
+                    <br>
+
+                    Kelas:
+                    ${student.kelas}
+
+                    <br><br>
+
+                    Alpa:
+                    ${student.alpa} kali
+
+                    <br>
+
+                    Terlambat:
+                    ${student.terlambat} kali
+
+                    <br>
+
+                    Bolos:
+                    ${student.bolos} kali
+
+                    <br><br>
+
+                    <strong>
+                        ⚠ Siswa melewati batas
+                    </strong>
+
+                </div>
+
+            `;
+
+        });
+
+
+        result.innerHTML = html;
+
+
+    } catch(error) {
+
+        console.error(error);
+
+        result.innerHTML =
+            '<div class="error">' +
+            'Gagal mengambil data: ' +
+            error.message +
+            '</div>';
+
+    }
+
+}
+
+
+/* =================================================
+   RIWAYAT SISWA - BUKA HALAMAN
+================================================= */
+
+function showHistoryPage() {
+
+    document
+        .getElementById("warningPage")
+        .classList.add("hidden");
+
+
+    document
+        .getElementById("historyPage")
+        .classList.remove("hidden");
+
+}
+
+
+/* =================================================
+   LOAD SISWA UNTUK RIWAYAT
+================================================= */
+
+async function loadStudentsForHistory() {
+
+    const select =
+        document.getElementById(
+            "historyStudent"
+        );
+
+
+    select.innerHTML =
+        "<option>Memuat siswa...</option>";
+
+
+    try {
+
+        const response =
+            await fetch(
+                API_URL +
+                "?action=siswa"
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (!result.success) {
+
+            throw new Error(
+                result.message
+            );
+
+        }
+
+
+        select.innerHTML =
+            '<option value="">Pilih Siswa</option>';
+
+
+        result.data.forEach(function(student) {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                student.idSiswa;
+
+
+            option.textContent =
+                student.nama +
+                " - " +
+                student.kelas;
+
+
+            select.appendChild(option);
+
+        });
+
+
+    } catch(error) {
+
+        console.error(error);
+
+        select.innerHTML =
+            '<option>Gagal memuat siswa</option>';
+
+    }
+
+}
+
+
+/* =================================================
+   TAMPILKAN RIWAYAT SISWA
+================================================= */
+
+async function loadHistory() {
+
+    const idSiswa =
+        document
+            .getElementById(
+                "historyStudent"
+            )
+            .value;
+
+
+    const result =
+        document
+            .getElementById(
+                "historyResult"
+            );
+
+
+    if (!idSiswa) {
+
+        result.innerHTML =
+            '<p class="error">' +
+            'Silakan pilih siswa terlebih dahulu.' +
+            '</p>';
+
+        return;
+    }
+
+
+    result.innerHTML =
+        "Memuat riwayat...";
+
+
+    try {
+
+        const url =
+            API_URL +
+            "?action=riwayat" +
+            "&idSiswa=" +
+            encodeURIComponent(idSiswa);
+
+
+        const response =
+            await fetch(url);
+
+
+        const data =
+            await response.json();
+
+
+        if (!data.success) {
+
+            throw new Error(
+                data.message
+            );
+
+        }
+
+
+        let html = `
+
+            <div class="student-card">
+
+                <strong>
+                    ${data.siswa.nama}
+                </strong>
+
+                <br>
+
+                NIS:
+                ${data.siswa.nis}
+
+                <br>
+
+                Kelas:
+                ${data.siswa.kelas}
+
+            </div>
+
+        `;
+
+
+        if (
+            !data.data ||
+            data.data.length === 0
+        ) {
+
+            html += `
+                <p>
+                    Belum ada riwayat kehadiran.
+                </p>
+            `;
+
+            result.innerHTML = html;
+
+            return;
+        }
+
+
+        html += `
+
+            <table>
+
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Status</th>
+                    <th>Keterangan</th>
+                </tr>
+
+        `;
+
+
+        data.data.forEach(function(item) {
+
+            html += `
+
+                <tr>
+
+                    <td>
+                        ${item.tanggal}
+                    </td>
+
+                    <td>
+                        ${item.status}
+                    </td>
+
+                    <td>
+                        ${item.keterangan || "-"}
+                    </td>
+
+                </tr>
+
+            `;
+
+        });
+
+
+        html += "</table>";
+
+
+        result.innerHTML = html;
+
+
+    } catch(error) {
+
+        console.error(error);
+
+        result.innerHTML =
+            '<p class="error">' +
+            'Gagal mengambil riwayat: ' +
+            error.message +
+            '</p>';
+
+    }
+
+}
+
+
+/* =================================================
+   KEMBALI KE DASHBOARD BK
+================================================= */
+
+function backToBK() {
+
+    document
+        .getElementById("warningPage")
+        .classList.add("hidden");
+
+
+    document
+        .getElementById("historyPage")
+        .classList.add("hidden");
+
+}
+
+</script>
+
+</body>
+</html>
